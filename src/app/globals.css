@@ -2,26 +2,131 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ══════════════════════════════════════════════
+   DUAL THEME SYSTEM — COLOR TOKENS
+   ══════════════════════════════════════════════ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Base palette (shared across both themes) */
+  --color-jet-black: #0a0908;
+  --color-stone-brown: #5e503f;
+  --color-khaki-beige: #c6ac8f;
+  --color-almond-cream: #eae0d5;
+
+  /* Default: dark theme tokens */
+  --background: #0a0908;
+  --foreground: #eae0d5;
+  --surface: rgba(234, 224, 213, 0.02);
+  --surface-border: rgba(139, 116, 90, 0.08);
+  --text-primary: rgba(234, 224, 213, 0.9);
+  --text-secondary: rgba(234, 224, 213, 0.6);
+  --text-tertiary: rgba(234, 224, 213, 0.4);
+  --text-accent: rgba(198, 172, 143, 0.8);
+  --text-micro: rgba(198, 172, 143, 0.5);
+  --divider: rgba(94, 80, 63, 0.4);
+  --glow: rgba(139, 116, 90, 0.08);
+  --selection-bg: rgba(198, 172, 143, 0.25);
+  --selection-text: #eae0d5;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ── Dark Theme (explicit class for zone wrapping) ── */
+.theme-dark {
+  --background: #0a0908;
+  --foreground: #eae0d5;
+  --surface: rgba(234, 224, 213, 0.02);
+  --surface-border: rgba(139, 116, 90, 0.08);
+  --text-primary: rgba(234, 224, 213, 0.9);
+  --text-secondary: rgba(234, 224, 213, 0.6);
+  --text-tertiary: rgba(234, 224, 213, 0.4);
+  --text-accent: rgba(198, 172, 143, 0.8);
+  --text-micro: rgba(198, 172, 143, 0.5);
+  --divider: rgba(94, 80, 63, 0.4);
+  --glow: rgba(139, 116, 90, 0.08);
+  --selection-bg: rgba(198, 172, 143, 0.25);
+  --selection-text: #eae0d5;
 }
+
+/* ── Light Theme ── */
+.theme-light {
+  --background: #eae0d5;
+  --foreground: #0a0908;
+  --surface: rgba(10, 9, 8, 0.03);
+  --surface-border: rgba(94, 80, 63, 0.12);
+  --text-primary: rgba(10, 9, 8, 0.9);
+  --text-secondary: rgba(90, 70, 50, 0.6);
+  --text-tertiary: rgba(90, 70, 50, 0.4);
+  --text-accent: rgba(139, 116, 90, 0.75);
+  --text-micro: rgba(94, 80, 63, 0.5);
+  --divider: rgba(94, 80, 63, 0.2);
+  --glow: rgba(198, 172, 143, 0.1);
+  --selection-bg: rgba(94, 80, 63, 0.15);
+  --selection-text: #0a0908;
+}
+
+/* ══════════════════════════════════════════════
+   BASE STYLES
+   ══════════════════════════════════════════════ */
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+/* Hide scrollbar for fully cinematic experience */
+::-webkit-scrollbar {
+  display: none;
+}
+
+html {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Standardized heading typography */
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.02em;
+  font-weight: 300;
+}
+
+/* Global selection color — respects theme */
+::selection {
+  background: var(--selection-bg);
+  color: var(--selection-text);
+}
+
+/* GPU compositing hint */
+* {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* ══════════════════════════════════════════════
+   GRAIN OVERLAYS — DUAL VARIANTS
+   ══════════════════════════════════════════════ */
+
+/* Dark surface grain (overlay blend) */
+.grain-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.03;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+}
+
+/* Light surface grain (multiply blend for warm surfaces) */
+.grain-overlay-light {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.04;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
 }
