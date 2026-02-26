@@ -1,10 +1,16 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, MotionValue } from "framer-motion";
 
 // ── Floating coffee bean shapes (pure CSS, no images) ──
-function CoffeeBeans({ opacity, y }: { opacity: any; y: any }) {
+function CoffeeBeans({
+  opacity,
+  y,
+}: {
+  opacity: MotionValue<number>;
+  y: MotionValue<number>;
+}) {
   const beans = [
     { x: "22%", top: "18%", size: 28, rot: 35, delay: 0 },
     { x: "68%", top: "25%", size: 22, rot: -20, delay: 2 },
