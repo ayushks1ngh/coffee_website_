@@ -13,17 +13,7 @@ export default function ProcessPage() {
         className="relative min-h-[70vh] flex items-end pb-20 px-6 md:px-16 lg:px-24 overflow-hidden"
         style={{ background: "#0a0908" }}
       >
-        <div className="grain-overlay" />
-
-        {/* Ghost number */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-          <span
-            className="text-[30vw] font-bold text-almond_cream leading-none"
-            style={{ opacity: 0.02 }}
-          >
-            04
-          </span>
-        </div>
+        <div className="grain-overlay" aria-hidden="true" />
 
         {/* Ambient glow */}
         <div className="absolute inset-0 pointer-events-none">

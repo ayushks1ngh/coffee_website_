@@ -1,10 +1,15 @@
+"use client";
+
+import dynamic from "next/dynamic";
 import CoffeeCraveReveal from "@/components/CoffeeCraveReveal";
-import SensoryPhilosophy from "@/components/SensoryPhilosophy";
-import CoffeeCollection from "@/components/CoffeeCollection";
-import SystemOfPrecision from "@/components/SystemOfPrecision";
-import ThemeTransition from "@/components/ThemeTransition";
-import GetTheBrew from "@/components/GetTheBrew";
-import BrandOutro from "@/components/BrandOutro";
+
+// ── Lazy-load heavy animation sections (load after hero renders) ──
+const SensoryPhilosophy = dynamic(() => import("@/components/SensoryPhilosophy"), { ssr: false });
+const CoffeeCollection = dynamic(() => import("@/components/CoffeeCollection"), { ssr: false });
+const SystemOfPrecision = dynamic(() => import("@/components/SystemOfPrecision"), { ssr: false });
+const ThemeTransition = dynamic(() => import("@/components/ThemeTransition"), { ssr: false });
+const GetTheBrew = dynamic(() => import("@/components/GetTheBrew"), { ssr: false });
+const BrandOutro = dynamic(() => import("@/components/BrandOutro"), { ssr: false });
 
 export default function Home() {
   return (

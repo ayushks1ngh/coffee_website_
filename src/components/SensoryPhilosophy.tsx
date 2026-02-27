@@ -1,9 +1,23 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef, useState, useEffect } from "react";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 
+// ── Mount Gate ──
+// Renders nothing on the server / first client render.
+// Once mounted, renders the inner component where all hooks run
+// with a guaranteed hydrated DOM ref.
 export default function SensoryPhilosophy() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) return null;
+
+  return <SensoryPhilosophyInner />;
+}
+
+// ── Inner Component (client-only, all hooks unconditional) ──
+function SensoryPhilosophyInner() {
   const sectionRef = useRef<HTMLElement>(null);
 
   const { scrollYProgress } = useScroll({
@@ -11,21 +25,23 @@ export default function SensoryPhilosophy() {
     offset: ["start end", "end start"],
   });
 
+  const smooth = useSpring(scrollYProgress, { stiffness: 80, damping: 20, mass: 0.3 });
+
   // Subtle parallax: content drifts upward as user scrolls through
-  const contentY = useTransform(scrollYProgress, [0, 0.5], [60, -20]);
-  const contentOpacity = useTransform(scrollYProgress, [0, 0.25, 0.75, 1], [0, 1, 1, 0.6]);
+  const contentY = useTransform(smooth, [0, 0.5], [60, -20]);
+  const contentOpacity = useTransform(smooth, [0, 0.25, 0.75, 1], [0, 1, 1, 0.6]);
 
   // Staggered label animation
-  const labelOpacity = useTransform(scrollYProgress, [0.05, 0.2], [0, 1]);
-  const labelY = useTransform(scrollYProgress, [0.05, 0.2], [20, 0]);
+  const labelOpacity = useTransform(smooth, [0.05, 0.2], [0, 1]);
+  const labelY = useTransform(smooth, [0.05, 0.2], [20, 0]);
 
   // Hero statement — slightly delayed entrance
-  const heroOpacity = useTransform(scrollYProgress, [0.1, 0.3], [0, 1]);
-  const heroY = useTransform(scrollYProgress, [0.1, 0.3], [40, 0]);
+  const heroOpacity = useTransform(smooth, [0.1, 0.3], [0, 1]);
+  const heroY = useTransform(smooth, [0.1, 0.3], [40, 0]);
 
   // Supporting copy — enters last
-  const copyOpacity = useTransform(scrollYProgress, [0.18, 0.38], [0, 1]);
-  const copyY = useTransform(scrollYProgress, [0.18, 0.38], [30, 0]);
+  const copyOpacity = useTransform(smooth, [0.18, 0.38], [0, 1]);
+  const copyY = useTransform(smooth, [0.18, 0.38], [30, 0]);
 
   return (
     <section

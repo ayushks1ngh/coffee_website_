@@ -34,3 +34,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# temp build logs
+build_output.txt
+build_output_utf8.txt
+out.txt
+
+# agents
+.agents/
+AGENTS.md

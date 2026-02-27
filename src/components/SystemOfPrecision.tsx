@@ -159,8 +159,14 @@ export default function SystemOfPrecision() {
         </div>
       </div>
 
-      {/* Bottom gradient transition */}
-      <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none z-10" />
+      {/* Bottom gradient — easing into warm transition zone */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-64 pointer-events-none z-10"
+        aria-hidden="true"
+        style={{
+          background: "linear-gradient(to top, #0a0908 0%, #0d0b09 30%, #12100e 50%, rgba(5,5,5,0.6) 75%, transparent 100%)",
+        }}
+      />
     </section>
   );
 }
