@@ -50,7 +50,7 @@ export default function BrandOutro() {
       <section
         ref={sectionRef}
         className="relative min-h-screen flex items-center justify-center overflow-hidden"
-        style={{ background: "#eae0d5" }}
+        style={{ background: "#e2d6c6" }}
       >
         {/* ── Layer 1: Subtle warm depth ── */}
         <div

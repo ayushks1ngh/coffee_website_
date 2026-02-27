@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
+import { useCart } from "@/context/CartContext";
 
 /* ══════════════════════════════════════════════
    ROUTE DEFINITIONS
@@ -22,7 +23,7 @@ const NAV_LINKS = [
    MAGNETIC HOVER — individual nav item
    ══════════════════════════════════════════════ */
 
-function MagneticNavItem({
+const MagneticNavItem = memo(function MagneticNavItem({
   label,
   href,
   isActive,
@@ -96,15 +97,56 @@ function MagneticNavItem({
       </Link>
     </motion.div>
   );
+});
+
+/* ══════════════════════════════════════════════
+   CART BADGE — item counter
+   ══════════════════════════════════════════════ */
+
+function CartBadge() {
+  const { itemCount } = useCart();
+
+  return (
+    <AnimatePresence>
+      {itemCount > 0 && (
+        <Link href="/cart">
+          <motion.div
+            className="ml-1 flex items-center justify-center rounded-full cursor-pointer"
+            style={{
+              width: 28,
+              height: 28,
+              background: "rgba(198,172,143,0.9)",
+              color: "#0a0908",
+              fontSize: 11,
+              fontWeight: 600,
+            }}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            whileHover={{ scale: 1.15 }}
+            whileTap={{ scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 400, damping: 20 }}
+          >
+            {itemCount}
+          </motion.div>
+        </Link>
+      )}
+    </AnimatePresence>
+  );
 }
 
 /* ══════════════════════════════════════════════
    MAIN NAVBAR COMPONENT
    ══════════════════════════════════════════════ */
 
-export default function Navbar() {
+const Navbar = memo(function Navbar() {
   const pathname = usePathname();
   const isHome = pathname === "/";
+
+  /* ── Detect light-theme pages ── */
+  const isLightPage = ["/menu", "/locations", "/about", "/contact", "/cart", "/checkout"].some(
+    (p) => pathname.startsWith(p)
+  );
 
   /* ── State ── */
   const [scrolled, setScrolled] = useState(false);         // past threshold
@@ -173,19 +215,27 @@ export default function Navbar() {
           left: "50%",
           zIndex: 999,
 
-          /* ── GLASSMORPHISM ── */
+          /* ── GLASSMORPHISM — adapts to light/dark pages ── */
           backdropFilter: scrolled
             ? "blur(24px) saturate(1.8)"
             : "blur(14px) saturate(1.4)",
           WebkitBackdropFilter: scrolled
             ? "blur(24px) saturate(1.8)"
             : "blur(14px) saturate(1.4)",
-          background: scrolled
-            ? "rgba(10,9,8,0.6)"
-            : "rgba(10,9,8,0.25)",
-          border: "1px solid rgba(255,255,255,0.07)",
+          background: isLightPage
+            ? scrolled
+              ? "rgba(94,80,63,0.55)"
+              : "rgba(94,80,63,0.25)"
+            : scrolled
+              ? "rgba(10,9,8,0.6)"
+              : "rgba(10,9,8,0.25)",
+          border: isLightPage
+            ? "1px solid rgba(94,80,63,0.12)"
+            : "1px solid rgba(255,255,255,0.07)",
           boxShadow: scrolled
-            ? "0 8px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)"
+            ? isLightPage
+              ? "0 8px 40px rgba(94,80,63,0.2), inset 0 1px 0 rgba(255,255,255,0.06)"
+              : "0 8px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)"
             : "0 4px 24px rgba(0,0,0,0.12)",
         }}
         initial={{ x: "-50%", y: -80, opacity: 0, scale: 1 }}
@@ -211,6 +261,9 @@ export default function Navbar() {
             isActive={pathname === link.href}
           />
         ))}
+
+        {/* Cart Badge */}
+        <CartBadge />
       </motion.nav>
 
       {/* ══════════════════════════════════════
@@ -295,4 +348,6 @@ export default function Navbar() {
       </AnimatePresence>
     </>
   );
-}
+});
+
+export default Navbar;

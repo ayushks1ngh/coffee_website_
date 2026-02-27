@@ -48,16 +48,40 @@ function CoffeeCraveInner() {
   const frameIndex = useTransform(springProgress, [0, 1], [0, FRAME_COUNT - 1]);
 
   // ── Beat transforms (all unconditional, top-level) ──
-  const beatAOpacity = useTransform(scrollYProgress, [0, 0.1, 0.2, 0.25], [1, 1, 0, 0]);
+  const beatAOpacity = useTransform(
+    scrollYProgress,
+    [0, 0.1, 0.2, 0.25],
+    [1, 1, 0, 0],
+  );
   const beatAY = useTransform(scrollYProgress, [0, 0.2], [0, -50]);
 
-  const beatBOpacity = useTransform(scrollYProgress, [0.2, 0.25, 0.4, 0.45], [0, 1, 1, 0]);
-  const beatBY = useTransform(scrollYProgress, [0.2, 0.25, 0.4, 0.45], [50, 0, 0, -50]);
+  const beatBOpacity = useTransform(
+    scrollYProgress,
+    [0.2, 0.25, 0.4, 0.45],
+    [0, 1, 1, 0],
+  );
+  const beatBY = useTransform(
+    scrollYProgress,
+    [0.2, 0.25, 0.4, 0.45],
+    [50, 0, 0, -50],
+  );
 
-  const beatCOpacity = useTransform(scrollYProgress, [0.45, 0.5, 0.65, 0.7], [0, 1, 1, 0]);
-  const beatCY = useTransform(scrollYProgress, [0.45, 0.5, 0.65, 0.7], [50, 0, 0, -50]);
+  const beatCOpacity = useTransform(
+    scrollYProgress,
+    [0.45, 0.5, 0.65, 0.7],
+    [0, 1, 1, 0],
+  );
+  const beatCY = useTransform(
+    scrollYProgress,
+    [0.45, 0.5, 0.65, 0.7],
+    [50, 0, 0, -50],
+  );
 
-  const beatDOpacity = useTransform(scrollYProgress, [0.7, 0.75, 0.9, 1], [0, 1, 1, 1]);
+  const beatDOpacity = useTransform(
+    scrollYProgress,
+    [0.7, 0.75, 0.9, 1],
+    [0, 1, 1, 1],
+  );
   const beatDY = useTransform(scrollYProgress, [0.7, 0.75, 1], [50, 0, 0]);
 
   const scrollDownOpacity = useTransform(scrollYProgress, [0, 0.05], [1, 0]);
@@ -82,7 +106,9 @@ function CoffeeCraveInner() {
             resolve();
           };
           img.onerror = () => {
-            console.warn(`Failed to load frame ${i}. Will fallback to nearest.`);
+            console.warn(
+              `Failed to load frame ${i}. Will fallback to nearest.`,
+            );
             resolve();
           };
         });
@@ -124,43 +150,54 @@ function CoffeeCraveInner() {
   }, []);
 
   // ── Canvas draw function ──
-  const drawCanvas = useCallback((progressVal: number) => {
-    if (!loaded || !canvasRef.current || images.length === 0 || hasExited) return;
+  const drawCanvas = useCallback(
+    (progressVal: number) => {
+      if (!loaded || !canvasRef.current || images.length === 0 || hasExited)
+        return;
 
-    if (!ctxRef.current) {
-      ctxRef.current = canvasRef.current.getContext("2d", { alpha: false });
-    }
-    const ctx = ctxRef.current;
-    if (!ctx) return;
-
-    const currentIndex = Math.max(0, Math.min(FRAME_COUNT - 1, Math.floor(progressVal)));
-    const currentImage = images[currentIndex];
-
-    if (currentImage && currentImage.complete && currentImage.naturalWidth > 0) {
-      const imgRatio = currentImage.width / currentImage.height;
-      const canvasLogicalWidth = canvasSize.w;
-      const canvasLogicalHeight = canvasSize.h;
-      const canvasRatio = canvasLogicalWidth / canvasLogicalHeight;
-
-      let drawWidth = canvasLogicalWidth;
-      let drawHeight = canvasLogicalHeight;
-      let offsetX = 0;
-      let offsetY = 0;
-
-      if (imgRatio > canvasRatio) {
-        drawWidth = canvasLogicalHeight * imgRatio;
-        offsetX = (canvasLogicalWidth - drawWidth) / 2;
-      } else {
-        drawHeight = canvasLogicalWidth / imgRatio;
-        offsetY = (canvasLogicalHeight - drawHeight) / 2;
+      if (!ctxRef.current) {
+        ctxRef.current = canvasRef.current.getContext("2d", { alpha: false });
       }
+      const ctx = ctxRef.current;
+      if (!ctx) return;
 
-      ctx.clearRect(0, 0, canvasLogicalWidth, canvasLogicalHeight);
-      ctx.fillStyle = "#0a0908";
-      ctx.fillRect(0, 0, canvasLogicalWidth, canvasLogicalHeight);
-      ctx.drawImage(currentImage, offsetX, offsetY, drawWidth, drawHeight);
-    }
-  }, [loaded, images, hasExited, canvasSize.w, canvasSize.h]);
+      const currentIndex = Math.max(
+        0,
+        Math.min(FRAME_COUNT - 1, Math.floor(progressVal)),
+      );
+      const currentImage = images[currentIndex];
+
+      if (
+        currentImage &&
+        currentImage.complete &&
+        currentImage.naturalWidth > 0
+      ) {
+        const imgRatio = currentImage.width / currentImage.height;
+        const canvasLogicalWidth = canvasSize.w;
+        const canvasLogicalHeight = canvasSize.h;
+        const canvasRatio = canvasLogicalWidth / canvasLogicalHeight;
+
+        let drawWidth = canvasLogicalWidth;
+        let drawHeight = canvasLogicalHeight;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        if (imgRatio > canvasRatio) {
+          drawWidth = canvasLogicalHeight * imgRatio;
+          offsetX = (canvasLogicalWidth - drawWidth) / 2;
+        } else {
+          drawHeight = canvasLogicalWidth / imgRatio;
+          offsetY = (canvasLogicalHeight - drawHeight) / 2;
+        }
+
+        ctx.clearRect(0, 0, canvasLogicalWidth, canvasLogicalHeight);
+        ctx.fillStyle = "#0a0908";
+        ctx.fillRect(0, 0, canvasLogicalWidth, canvasLogicalHeight);
+        ctx.drawImage(currentImage, offsetX, offsetY, drawWidth, drawHeight);
+      }
+    },
+    [loaded, images, hasExited, canvasSize.w, canvasSize.h],
+  );
 
   // ── Retina canvas sizing ──
   useEffect(() => {
@@ -179,8 +216,7 @@ function CoffeeCraveInner() {
       }
       drawCanvas(frameIndex.get());
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canvasSize, loaded]);
+  }, [canvasSize, loaded, drawCanvas, frameIndex]);
 
   // ── Motion lifecycle listeners (subscribe/unsubscribe cleanly) ──
   useEffect(() => {
@@ -218,7 +254,9 @@ function CoffeeCraveInner() {
         transition={{ duration: 1.5, ease: "easeInOut" }}
         style={{ pointerEvents: loaded ? "none" : "auto" }}
       >
-        <h1 className="text-3xl font-extralight tracking-widest mb-4">COFFEE CRAVE</h1>
+        <h1 className="text-3xl font-extralight tracking-widest mb-4">
+          COFFEE CRAVE
+        </h1>
         <div className="w-48 h-[1px] bg-stone_brown/30 relative overflow-hidden">
           <motion.div
             className="absolute top-0 left-0 h-full bg-stone_brown transition-all duration-75 ease-linear"
@@ -232,103 +270,186 @@ function CoffeeCraveInner() {
 
       {/* Scroll Container */}
       <div ref={containerRef} className="relative w-full h-[400vh] bg-black">
-
         {/* Sticky Canvas & Story Container */}
         <div className="sticky top-0 w-full h-screen overflow-hidden">
-
           <canvas
             ref={canvasRef}
             className="absolute inset-0 z-0 pointer-events-none"
           />
 
           {/* Vignette Overlay */}
-          <div className="absolute inset-0 z-10 pointer-events-none" style={{ background: 'radial-gradient(circle, transparent 40%, rgba(10,9,8,0.95) 100%)' }} />
-
-          {/* Text Backdrop — subtle radial darken behind typography zone only */}
           <div
-            className="absolute inset-0 z-15 pointer-events-none"
+            className="absolute inset-0 z-10 pointer-events-none"
             style={{
-              background: 'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(10,9,8,0.5) 0%, transparent 70%)',
-              mixBlendMode: 'normal',
+              background:
+                "radial-gradient(circle, transparent 40%, rgba(10,9,8,0.95) 100%)",
             }}
           />
 
-          {/* Story Texts */}
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none">
+          {/* Cinematic glass diffusion — frosted atmospheric depth between image and text */}
+          <div
+            className="absolute inset-0 z-[15] pointer-events-none"
+            aria-hidden="true"
+            style={{
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              background: "rgba(10,9,8,0.12)",
+              maskImage:
+                "radial-gradient(ellipse 55% 45% at 50% 48%, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 40%, transparent 65%)",
+              WebkitMaskImage:
+                "radial-gradient(ellipse 55% 45% at 50% 48%, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 40%, transparent 65%)",
+            }}
+          />
 
-            {/* Beat A */}
+          {/* Story Texts — Bold editorial with studio-lit diffusion */}
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none">
+            {/* Beat A — "COFFEE REIMAGINED" */}
             <motion.div
-              className="absolute text-center px-6"
+              className="absolute text-center px-4 w-full"
               style={{ opacity: beatAOpacity, y: beatAY }}
             >
               <h2
-                className="text-4xl md:text-6xl font-light tracking-tight text-almond_cream/90 mb-6 leading-[1.05]"
-                style={{ textShadow: '0 2px 20px rgba(0,0,0,0.6)' }}
+                style={{
+                  color: "rgba(255,255,255,0.9)",
+                  fontSize: "clamp(2.5rem, 10vw, 10rem)",
+                  fontWeight: 800,
+                  letterSpacing: "-0.02em",
+                  lineHeight: 0.95,
+                  textShadow:
+                    "0 0 40px rgba(255,255,255,0.06), 0 0 20px rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.3)",
+                }}
               >
-                COFFEE, REIMAGINED.
+                COFFEE
+                <br />
+                <span style={{ color: "rgba(255,255,255,0.85)" }}>
+                  REIMAGINED
+                </span>
               </h2>
-              <p className="text-sm md:text-lg text-almond_cream/60 font-light tracking-wide max-w-xl mx-auto leading-relaxed" style={{ textShadow: '0 1px 12px rgba(0,0,0,0.5)' }}>
+              <p
+                className="mt-5 md:mt-8 text-xs md:text-sm lg:text-base font-light tracking-[0.15em] uppercase max-w-lg mx-auto"
+                style={{
+                  color: "rgba(255,255,255,0.5)",
+                  textShadow: "0 1px 6px rgba(0,0,0,0.25)",
+                }}
+              >
                 Crafted beyond taste. Engineered for sensation.
               </p>
             </motion.div>
 
-            {/* Beat B */}
+            {/* Beat B — "PRECISION IN EVERY DROP" */}
             <motion.div
-              className="absolute text-center px-6"
+              className="absolute text-center px-4 w-full"
               style={{ opacity: beatBOpacity, y: beatBY }}
             >
               <h2
-                className="text-4xl md:text-6xl font-light tracking-tight text-khaki_beige/90 mb-6 leading-[1.05]"
-                style={{ textShadow: '0 2px 20px rgba(0,0,0,0.6)' }}
+                style={{
+                  color: "rgba(255,255,255,0.9)",
+                  fontSize: "clamp(2rem, 8vw, 8rem)",
+                  fontWeight: 800,
+                  letterSpacing: "-0.02em",
+                  lineHeight: 0.95,
+                  textShadow:
+                    "0 0 40px rgba(255,255,255,0.06), 0 0 20px rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.3)",
+                }}
               >
-                PRECISION IN EVERY DROP
+                PRECISION
+                <br />
+                <span style={{ color: "rgba(255,255,255,0.85)" }}>
+                  IN EVERY DROP
+                </span>
               </h2>
-              <p className="text-sm md:text-lg text-almond_cream/60 font-light tracking-wide max-w-xl mx-auto leading-relaxed" style={{ textShadow: '0 1px 12px rgba(0,0,0,0.5)' }}>
-                Ethically sourced beans. Perfect extraction. Relentless refinement.
+              <p
+                className="mt-5 md:mt-8 text-xs md:text-sm lg:text-base font-light tracking-[0.15em] uppercase max-w-lg mx-auto"
+                style={{
+                  color: "rgba(255,255,255,0.5)",
+                  textShadow: "0 1px 6px rgba(0,0,0,0.25)",
+                }}
+              >
+                Ethically sourced. Perfect extraction. Relentless refinement.
               </p>
             </motion.div>
 
-            {/* Beat C */}
+            {/* Beat C — "THE SCIENCE OF INDULGENCE" */}
             <motion.div
-              className="absolute text-center px-6 w-full max-w-sm md:max-w-xl mx-auto"
+              className="absolute text-center px-4 w-full"
               style={{ opacity: beatCOpacity, y: beatCY }}
             >
               <h2
-                className="text-3xl md:text-5xl font-light tracking-tight text-almond_cream/90 mb-4 md:mb-6 leading-[1.05]"
-                style={{ textShadow: '0 2px 20px rgba(0,0,0,0.6)' }}
+                style={{
+                  color: "rgba(255,255,255,0.9)",
+                  fontSize: "clamp(1.8rem, 7vw, 7rem)",
+                  fontWeight: 800,
+                  letterSpacing: "-0.02em",
+                  lineHeight: 0.95,
+                  textShadow:
+                    "0 0 40px rgba(255,255,255,0.06), 0 0 20px rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.3)",
+                }}
               >
-                THE SCIENCE OF INDULGENCE
+                THE SCIENCE
+                <br />
+                <span style={{ color: "rgba(255,255,255,0.85)" }}>
+                  OF INDULGENCE
+                </span>
               </h2>
-              <p className="text-sm md:text-lg text-almond_cream/60 font-light tracking-wide leading-relaxed" style={{ textShadow: '0 1px 12px rgba(0,0,0,0.5)' }}>
-                Temperature, texture, and flavor working in harmony.
+              <p
+                className="mt-5 md:mt-8 text-xs md:text-sm lg:text-base font-light tracking-[0.15em] uppercase max-w-lg mx-auto"
+                style={{
+                  color: "rgba(255,255,255,0.45)",
+                  textShadow: "0 1px 6px rgba(0,0,0,0.25)",
+                }}
+              >
+                Temperature, texture, and flavor in harmony.
               </p>
             </motion.div>
 
-            {/* Beat D */}
+            {/* Beat D — "TASTE THE TRUTH" + CTA */}
             <motion.div
-              className="absolute text-center px-6 top-3/4 transform -translate-y-1/2 flex flex-col items-center pointer-events-auto relative z-50"
+              className="absolute text-center px-4 w-full top-3/4 transform -translate-y-1/2 flex flex-col items-center pointer-events-auto z-50"
               style={{ opacity: beatDOpacity, y: beatDY }}
             >
               <h2
-                className="text-3xl md:text-5xl font-light tracking-tight text-almond_cream/90 mb-4 leading-[1.05]"
-                style={{ textShadow: '0 2px 20px rgba(0,0,0,0.6)' }}
+                style={{
+                  color: "rgba(255,255,255,0.9)",
+                  fontSize: "clamp(1.8rem, 7vw, 7rem)",
+                  fontWeight: 800,
+                  letterSpacing: "-0.02em",
+                  lineHeight: 0.95,
+                  textShadow:
+                    "0 0 40px rgba(255,255,255,0.06), 0 0 20px rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.3)",
+                }}
               >
-                TASTE THE INNER TRUTH
+                TASTE
+                <br />
+                <span style={{ color: "rgba(255,255,255,0.85)" }}>
+                  THE TRUTH
+                </span>
               </h2>
-              <p className="text-sm md:text-base text-almond_cream/60 font-light tracking-wide mb-8 leading-relaxed" style={{ textShadow: '0 1px 12px rgba(0,0,0,0.5)' }}>
+              <p
+                className="mt-4 md:mt-6 mb-8 text-xs md:text-sm font-light tracking-[0.15em] uppercase"
+                style={{
+                  color: "rgba(255,255,255,0.45)",
+                  textShadow: "0 1px 6px rgba(0,0,0,0.25)",
+                }}
+              >
                 Experience COFFEE CRAVE.
               </p>
 
               <motion.button
-                whileHover={{ scale: 1.03, filter: "brightness(1.1)" }}
+                whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.97 }}
-                onClick={() => alert("Added to cart: 1x COFFEE CRAVE Iced Latte")}
-                className="bg-almond_cream text-black px-8 py-3 rounded-full text-sm tracking-widest uppercase cursor-pointer relative z-50 transition-all duration-300"
+                onClick={() =>
+                  alert("Added to cart: 1x COFFEE CRAVE Iced Latte")
+                }
+                className="px-10 py-3.5 rounded-full text-xs md:text-sm tracking-[0.2em] uppercase cursor-pointer relative z-50 transition-all duration-200"
+                style={{
+                  background: "rgba(255,255,255,0.92)",
+                  color: "#0a0908",
+                  fontWeight: 600,
+                }}
               >
                 Order Your Iced Latte
               </motion.button>
             </motion.div>
-
           </div>
 
           {/* Scroll Down Indicator */}
@@ -339,16 +460,17 @@ function CoffeeCraveInner() {
             transition={{ delay: 2, duration: 1 }}
             style={{ opacity: scrollDownOpacity }}
           >
-            <span className="text-[10px] uppercase tracking-[0.3em] text-almond_cream/50 mb-3 block">Scroll to Explore</span>
+            <span className="text-[10px] uppercase tracking-[0.3em] text-almond_cream/50 mb-3 block">
+              Scroll to Explore
+            </span>
             <div className="w-[1px] h-12 bg-stone_brown/30 relative overflow-hidden">
               <motion.div
                 className="absolute top-0 w-full h-1/2 bg-stone_brown"
-                animate={{ top: ['-50%', '100%'] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+                animate={{ top: ["-50%", "100%"] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
               />
             </div>
           </motion.div>
-
         </div>
       </div>
     </>

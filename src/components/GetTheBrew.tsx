@@ -13,8 +13,17 @@ export default function GetTheBrew() {
     <section
       ref={sectionRef}
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
-      style={{ background: "#eae0d5" }}
+      style={{ background: "#e2d6c6" }}
     >
+      {/* Top-edge warm gradient — eases in from transition zone */}
+      <div
+        className="absolute top-0 left-0 right-0 h-48 pointer-events-none z-[1]"
+        aria-hidden="true"
+        style={{
+          background: "linear-gradient(to bottom, rgba(198,172,143,0.08) 0%, rgba(198,172,143,0.03) 40%, transparent 100%)",
+        }}
+      />
+
       {/* Subtle warm radial depth */}
       <div
         className="absolute inset-0 pointer-events-none"
