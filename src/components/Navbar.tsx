@@ -17,7 +17,6 @@ const NAV_LINKS = [
   { label: "Locations", href: "/locations" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
-  { label: "Account", href: "/account" },
 ];
 
 /* ══════════════════════════════════════════════
@@ -133,6 +132,29 @@ function CartBadge() {
         </Link>
       )}
     </AnimatePresence>
+  );
+}
+
+/* ══════════════════════════════════════════════
+   SIGN IN BUTTON
+   ══════════════════════════════════════════════ */
+
+function SignInButton() {
+  return (
+    <Link href="/account">
+      <motion.div
+        className="ml-2 px-4 py-1.5 rounded-full cursor-pointer text-[10px] tracking-[0.15em] uppercase font-medium"
+        style={{
+          background: "rgba(198,172,143,0.15)",
+          color: "rgba(198,172,143,0.9)",
+          border: "1px solid rgba(198,172,143,0.3)",
+        }}
+        whileHover={{ scale: 1.05, background: "rgba(198,172,143,0.25)" }}
+        whileTap={{ scale: 0.95 }}
+      >
+        Sign In
+      </motion.div>
+    </Link>
   );
 }
 
@@ -265,6 +287,9 @@ const Navbar = memo(function Navbar() {
 
         {/* Cart Badge */}
         <CartBadge />
+
+        {/* Sign In */}
+        <SignInButton />
       </motion.nav>
 
       {/* ══════════════════════════════════════
@@ -344,6 +369,20 @@ const Navbar = memo(function Navbar() {
                 </motion.div>
               );
             })}
+
+            {/* Sign In link in mobile */}
+            <motion.div
+              initial={{ opacity: 0, y: 25 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ delay: 0.04 * NAV_LINKS.length, duration: 0.35 }}
+            >
+              <Link href="/account" onClick={() => setMobileOpen(false)}>
+                <span className="text-2xl tracking-[0.15em] uppercase cursor-pointer text-khaki_beige/70 hover:text-khaki_beige">
+                  Sign In
+                </span>
+              </Link>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
