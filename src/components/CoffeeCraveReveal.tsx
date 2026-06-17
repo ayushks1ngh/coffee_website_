@@ -98,7 +98,7 @@ function CoffeeCraveInner() {
 
         await new Promise<void>((resolve) => {
           const img = new Image();
-          img.src = `/sequence/frame_${i}.jpg`;
+          img.src = `/sequence/frame_${i}.webp`;
           img.onload = () => {
             loadedImages[i] = img;
             loadedCount++;

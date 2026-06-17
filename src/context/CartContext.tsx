@@ -5,12 +5,14 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
   ReactNode,
 } from "react";
 
 // ── Types ──
 export interface CartItem {
   id: string;
+  productId: string;
   name: string;
   price: number;
   size: "Small" | "Medium" | "Large";
@@ -29,6 +31,8 @@ interface CartContextType {
   toast: string | null;
 }
 
+const STORAGE_KEY = "coffee-crave-cart";
+
 const CartContext = createContext<CartContextType>({
   items: [],
   addToCart: () => {},
@@ -44,9 +48,37 @@ export function useCart() {
   return useContext(CartContext);
 }
 
+function loadCart(): CartItem[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveCart(items: CartItem[]) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  } catch {}
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [toast, setToast] = useState<string | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+
+  // Hydrate from localStorage on mount
+  useEffect(() => {
+    setItems(loadCart());
+    setHydrated(true);
+  }, []);
+
+  // Persist to localStorage on change (after hydration)
+  useEffect(() => {
+    if (hydrated) saveCart(items);
+  }, [items, hydrated]);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -56,7 +88,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addToCart = useCallback(
     (item: Omit<CartItem, "id" | "quantity"> & { quantity?: number }) => {
       setItems((prev) => {
-        // Check if same drink + same size already exists
         const existing = prev.find(
           (i) => i.name === item.name && i.size === item.size
         );

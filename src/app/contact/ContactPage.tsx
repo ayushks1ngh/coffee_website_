@@ -20,8 +20,20 @@ const SOCIALS = [
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const data = new FormData(form);
+    await fetch("/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: data.get("name"),
+        email: data.get("email"),
+        subject: data.get("subject"),
+        message: data.get("message"),
+      }),
+    });
     setSubmitted(true);
   };
 
@@ -96,7 +108,7 @@ export default function ContactPage() {
                       color: "rgba(10,9,8,0.8)",
                       borderColor: "rgba(94,80,63,0.15)",
                     }}
-                    placeholder="Your name"
+                    placeholder="Your name" name="name"
                   />
                 </div>
                 <div>
@@ -111,7 +123,7 @@ export default function ContactPage() {
                       color: "rgba(10,9,8,0.8)",
                       borderColor: "rgba(94,80,63,0.15)",
                     }}
-                    placeholder="you@email.com"
+                    placeholder="you@email.com" name="email"
                   />
                 </div>
               </div>
@@ -128,7 +140,7 @@ export default function ContactPage() {
                     color: "rgba(10,9,8,0.8)",
                     borderColor: "rgba(94,80,63,0.15)",
                   }}
-                  placeholder="What's this about?"
+                  placeholder="What's this about?" name="subject"
                 />
               </div>
 
@@ -144,7 +156,7 @@ export default function ContactPage() {
                     color: "rgba(10,9,8,0.8)",
                     borderColor: "rgba(94,80,63,0.15)",
                   }}
-                  placeholder="Tell us more..."
+                  placeholder="Tell us more..." name="message"
                 />
               </div>
 

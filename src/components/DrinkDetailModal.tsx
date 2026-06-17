@@ -7,6 +7,7 @@ import { useCart } from "@/context/CartContext";
 
 // ── Types ──
 export interface DrinkData {
+  id: string;
   name: string;
   desc: string;
   price: number;
@@ -45,6 +46,7 @@ export default function DrinkDetailModal({
 
   const handleAddToOrder = () => {
     addToCart({
+      productId: drink.id,
       name: drink.name,
       size: selectedSize,
       price: parseFloat(adjustedPrice),

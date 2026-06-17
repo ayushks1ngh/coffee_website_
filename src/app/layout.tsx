@@ -41,7 +41,7 @@ export const metadata: Metadata = {
       "Crafted beyond taste. Engineered for sensation. Browse our curated menu and order your next cup.",
     images: [
       {
-        url: "/og-image.png",
+        url: "/og-image.jpg",
         width: 1200,
         height: 630,
         alt: "Coffee Crave — Precision Crafted Coffee",
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     title: "Coffee Crave — Precision Crafted Coffee Experience",
     description:
       "Crafted beyond taste. Engineered for sensation.",
-    images: ["/og-image.png"],
+    images: ["/og-image.jpg"],
   },
   robots: { index: true, follow: true },
   icons: { icon: "/favicon.ico" },

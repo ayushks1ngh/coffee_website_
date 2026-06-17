@@ -102,8 +102,10 @@ h6 {
   color: var(--selection-text);
 }
 
-/* GPU compositing hint */
-* {
+/* GPU compositing hint — only on animated elements */
+.will-animate,
+[data-framer-motion],
+canvas {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
 }

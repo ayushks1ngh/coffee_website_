@@ -1,37 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import PageShell from "@/components/PageShell";
 import { useCart } from "@/context/CartContext";
 
-const PICKUP_LOCATIONS = [
-  "Lucknow — Hazratganj",
-  "Delhi — Connaught Place",
-  "Mumbai — Bandra West",
-  "Dubai — Downtown",
-  "London — Soho",
-  "Singapore — Marina Bay",
-];
+interface LocationData {
+  id: string;
+  city: string;
+  address: string;
+}
 
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
   const router = useRouter();
 
-  const TAX_RATE = 0.08;
+  const TAX_RATE = Number(process.env.NEXT_PUBLIC_TAX_RATE || 0.08);
   const tax = subtotal * TAX_RATE;
   const total = subtotal + tax;
 
+  const [locations, setLocations] = useState<LocationData[]>([]);
   const [form, setForm] = useState({
     name: "",
     email: "",
     phone: "",
-    location: PICKUP_LOCATIONS[0],
+    location_id: "",
   });
-
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    fetch("/api/locations")
+      .then((r) => r.json())
+      .then((d) => {
+        setLocations(d.locations || []);
+        if (d.locations?.length) setForm((f) => ({ ...f, location_id: d.locations[0].id }));
+      });
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -39,15 +46,36 @@ export default function CheckoutPage() {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+    setError("");
 
-    // Simulate order placement
-    setTimeout(() => {
-      clearCart();
-      router.push("/order-success");
-    }, 1200);
+    const res = await fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        customer_name: form.name,
+        customer_email: form.email,
+        customer_phone: form.phone,
+        location_id: form.location_id,
+        items: items.map((i) => ({
+          product_id: i.productId || i.id.split("-").slice(0, -2).join("-"),
+          size: i.size,
+          quantity: i.quantity,
+        })),
+      }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      setError(data.error || "Something went wrong");
+      setSubmitting(false);
+      return;
+    }
+
+    clearCart();
+    router.push("/order-success");
   };
 
   const isValid =
@@ -200,8 +228,8 @@ export default function CheckoutPage() {
                   Pickup Location
                 </label>
                 <select
-                  name="location"
-                  value={form.location}
+                  name="location_id"
+                  value={form.location_id}
                   onChange={handleChange}
                   className="w-full px-5 py-3.5 rounded-xl text-sm font-light outline-none cursor-pointer transition-all duration-300 appearance-none"
                   style={{
@@ -210,13 +238,17 @@ export default function CheckoutPage() {
                     color: "rgba(10,9,8,0.8)",
                   }}
                 >
-                  {PICKUP_LOCATIONS.map((loc) => (
-                    <option key={loc} value={loc}>
-                      {loc}
+                  {locations.map((loc) => (
+                    <option key={loc.id} value={loc.id}>
+                      {loc.city} — {loc.address}
                     </option>
                   ))}
                 </select>
               </div>
+
+              {error && (
+                <p className="text-sm text-red-500 mt-2">{error}</p>
+              )}
             </div>
           </motion.div>
 

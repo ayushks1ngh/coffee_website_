@@ -43,3 +43,6 @@ out.txt
 # agents
 .agents/
 AGENTS.md
+
+# supabase
+.supabase/

@@ -17,6 +17,7 @@ const NAV_LINKS = [
   { label: "Locations", href: "/locations" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
+  { label: "Account", href: "/account" },
 ];
 
 /* ══════════════════════════════════════════════

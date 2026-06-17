@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import PageShell from "@/components/PageShell";
@@ -20,148 +20,40 @@ const CATEGORIES = [
 
 type Category = (typeof CATEGORIES)[number];
 
-// ── Drink Catalog ──
-const DRINKS: DrinkData[] = [
-  {
-    name: "Iced Latte",
-    desc: "Ethiopian Arabica slow-pulled through velvet milk over a 12-hour cold steep. Structured sweetness, zero bitterness.",
-    price: 6.5,
-    image: "/drinks/iced-latte.png",
-    origin: "Ethiopia · Yirgacheffe",
-    temp: "3°C Serve",
-    flavorNotes: ["Caramel", "Silk Milk", "Citrus"],
-    ingredients: [
-      "Ethiopian Arabica",
-      "Whole Milk",
-      "Filtered Ice",
-      "Raw Cane Sugar",
-    ],
-    tags: ["Iced Coffee", "Signature"],
-  },
-  {
-    name: "Vanilla Cold Brew",
-    desc: "Colombian single-origin steeped for 18 hours then infused with Madagascar vanilla. Concentrated clarity with a sweet finish.",
-    price: 7.0,
-    image: "/drinks/vanilla-cold-brew.png",
-    origin: "Colombia · Huila",
-    temp: "4°C Serve",
-    flavorNotes: ["Vanilla", "Dark Chocolate", "Walnut"],
-    ingredients: [
-      "Colombian Beans",
-      "Madagascar Vanilla",
-      "Filtered Water",
-      "Organic Sugar",
-    ],
-    tags: ["Cold Brew", "Iced Coffee"],
-  },
-  {
-    name: "Caramel Latte",
-    desc: "Brazilian Cerrado pulled at 9-bar with house-made salted caramel. Creamy, bold, architecturally balanced.",
-    price: 7.5,
-    image: "/drinks/caramel-latte.png",
-    origin: "Brazil · Cerrado",
-    temp: "3°C Serve",
-    flavorNotes: ["Salted Caramel", "Toffee", "Cream"],
-    ingredients: [
-      "Brazilian Beans",
-      "Salted Caramel",
-      "Steamed Milk",
-      "Vanilla Extract",
-    ],
-    tags: ["Iced Coffee", "Signature"],
-  },
-  {
-    name: "Classic Espresso",
-    desc: "Single-origin precision pulled. 25-second extraction at 93°C yields concentrated depth with a hazelnut finish.",
-    price: 4.5,
-    image: "/drinks/classic-espresso.png",
-    origin: "Guatemala · Antigua",
-    temp: "93°C Extract",
-    flavorNotes: ["Hazelnut", "Dark Cocoa", "Smoke"],
-    ingredients: ["Guatemalan Single-Origin", "Filtered Water"],
-    tags: ["Espresso"],
-  },
-  {
-    name: "Double Shot",
-    desc: "Two precisely timed pulls layered for maximum intensity. Bold without harshness, structured without excess.",
-    price: 5.0,
-    image: "/drinks/double-shot.png",
-    origin: "Kenya · Nyeri",
-    temp: "92°C Extract",
-    flavorNotes: ["Black Cherry", "Molasses", "Spice"],
-    ingredients: ["Kenyan AA Beans", "Filtered Water"],
-    tags: ["Espresso"],
-  },
-  {
-    name: "Flat White",
-    desc: "Velvet microfoam over a double ristretto. The ratio is engineered — not approximated. Silk texture, no waste.",
-    price: 5.5,
-    image: "/drinks/flat-white.png",
-    origin: "Costa Rica · Tarrazú",
-    temp: "65°C Serve",
-    flavorNotes: ["Honey", "Almond", "Silk"],
-    ingredients: ["Costa Rican Beans", "Microfoam Milk", "Filtered Water"],
-    tags: ["Espresso", "Signature"],
-  },
-  {
-    name: "Coffee Crave Special",
-    desc: "Our house creation — a layered experience of espresso, exotic spices, and vanilla cream. Limited runs, unlimited depth.",
-    price: 8.5,
-    image: "/drinks/cc-special.png",
-    origin: "Multi-Origin Blend",
-    temp: "4°C Serve",
-    flavorNotes: ["Cardamom", "Vanilla", "Gold Shimmer"],
-    ingredients: [
-      "House Blend",
-      "Cardamom",
-      "Vanilla Cream",
-      "Edible Gold",
-    ],
-    tags: ["Signature", "Specials"],
-  },
-  {
-    name: "Hazelnut Fusion",
-    desc: "Toasted hazelnuts folded into a medium-roast cold brew. Nutty sweetness, zero artificial flavoring, all craft.",
-    price: 7.5,
-    image: "/drinks/hazelnut-fusion.png",
-    origin: "Peru · Cajamarca",
-    temp: "4°C Serve",
-    flavorNotes: ["Toasted Hazelnut", "Butterscotch", "Oak"],
-    ingredients: [
-      "Peruvian Beans",
-      "Crushed Hazelnuts",
-      "Oat Milk",
-      "Raw Honey",
-    ],
-    tags: ["Signature", "Cold Brew"],
-  },
-  {
-    name: "Mocha Velvet",
-    desc: "Belgian dark chocolate meets double espresso in a velvety marriage. Rich, indulgent, architecturally layered.",
-    price: 8.0,
-    image: "/drinks/mocha-velvet.png",
-    origin: "Ethiopia · Sidamo",
-    temp: "3°C Serve",
-    flavorNotes: ["Dark Chocolate", "Raspberry", "Velvet"],
-    ingredients: [
-      "Ethiopian Beans",
-      "Belgian Chocolate",
-      "Steamed Milk",
-      "Cocoa Powder",
-    ],
-    tags: ["Signature", "Specials"],
-  },
-];
-
 export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState<Category>("All");
   const [selectedDrink, setSelectedDrink] = useState<DrinkData | null>(null);
+  const [drinks, setDrinks] = useState<DrinkData[]>([]);
   const { addToCart, toast } = useCart();
+
+  useEffect(() => {
+    fetch("/api/products")
+      .then((r) => r.json())
+      .then((data) => {
+        const mapped: DrinkData[] = (data.products || []).map((p: {
+          id: string; name: string; description: string; base_price: number;
+          image_url: string; origin: string; temp: string;
+          flavor_notes: string[]; ingredients: string[]; tags: string[];
+        }) => ({
+          id: p.id,
+          name: p.name,
+          desc: p.description,
+          price: p.base_price,
+          image: p.image_url,
+          origin: p.origin,
+          temp: p.temp,
+          flavorNotes: p.flavor_notes,
+          ingredients: p.ingredients,
+          tags: p.tags,
+        }));
+        setDrinks(mapped);
+      });
+  }, []);
 
   const filtered =
     activeCategory === "All"
-      ? DRINKS
-      : DRINKS.filter((d) => d.tags.includes(activeCategory));
+      ? drinks
+      : drinks.filter((d) => d.tags.includes(activeCategory));
 
   /** Quick-add handler — adds as Medium by default */
   const handleQuickAdd = (
@@ -170,6 +62,7 @@ export default function MenuPage() {
   ) => {
     e.stopPropagation(); // don't open modal
     addToCart({
+      productId: drink.id,
       name: drink.name,
       price: drink.price,
       size: "Medium",
