@@ -8,6 +8,7 @@ import Script from "next/script";
 import PageShell from "@/components/PageShell";
 import { useCart } from "@/context/CartContext";
 import { useCurrency } from "@/context/CurrencyContext";
+import { createClient } from "@/lib/supabase/client";
 
 interface LocationData {
   id: string;
@@ -48,6 +49,21 @@ export default function CheckoutPage() {
       });
   }, []);
 
+  // Pre-fill form from logged-in user
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setForm((f) => ({
+          ...f,
+          name: user.user_metadata?.name || user.user_metadata?.full_name || f.name,
+          email: user.email || f.email,
+          phone: user.user_metadata?.phone || user.phone || f.phone,
+        }));
+      }
+    });
+  }, []);
+
   useEffect(() => {
     setPaymentMethod(currency === "INR" ? "razorpay" : "stripe");
   }, [currency]);
@@ -83,13 +99,19 @@ export default function CheckoutPage() {
   };
 
   const handleRazorpayPayment = async () => {
+    if (!window.Razorpay) {
+      setError("Payment gateway loading. Please try again in a moment.");
+      setSubmitting(false);
+      return;
+    }
+
     const res = await fetch("/api/payments/razorpay", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(orderPayload),
     });
     const data = await res.json();
-    if (!res.ok) { setError(data.error || "Payment failed"); return; }
+    if (!res.ok) { setError(data.error || "Payment failed"); setSubmitting(false); return; }
 
     const options = {
       key: data.key_id,
@@ -129,13 +151,15 @@ export default function CheckoutPage() {
     try {
       if (paymentMethod === "stripe") {
         await handleStripePayment();
+        setSubmitting(false);
       } else {
         await handleRazorpayPayment();
+        // submitting is reset by modal.ondismiss or handler
       }
     } catch {
       setError("Something went wrong. Please try again.");
+      setSubmitting(false);
     }
-    setSubmitting(false);
   };
 
   const isValid = form.name.trim() && form.email.trim() && form.phone.trim();
@@ -148,7 +172,7 @@ export default function CheckoutPage() {
 
   return (
     <PageShell theme="light">
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
 
       {/* Hero */}
       <motion.div
