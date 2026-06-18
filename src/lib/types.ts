@@ -43,6 +43,8 @@ export interface Order {
   tax: number;
   total: number;
   notes: string;
+  payment_id?: string;
+  payment_provider?: "stripe" | "razorpay";
   created_at: string;
   items?: OrderItem[];
 }
