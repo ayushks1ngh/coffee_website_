@@ -39,7 +39,9 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(currency === "INR" ? "razorpay" : "stripe");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  // Fetch locations
   useEffect(() => {
     fetch("/api/locations")
       .then((r) => r.json())
@@ -49,14 +51,15 @@ export default function CheckoutPage() {
       });
   }, []);
 
-  // Pre-fill form from logged-in user
+  // Auto-fill from logged-in user
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
+        setIsLoggedIn(true);
         setForm((f) => ({
           ...f,
-          name: user.user_metadata?.name || user.user_metadata?.full_name || f.name,
+          name: user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split("@")[0] || f.name,
           email: user.email || f.email,
           phone: user.user_metadata?.phone || user.phone || f.phone,
         }));
@@ -92,15 +95,14 @@ export default function CheckoutPage() {
       body: JSON.stringify(orderPayload),
     });
     const data = await res.json();
-    if (!res.ok) { setError(data.error || "Payment failed"); return; }
-    // Redirect to Stripe Checkout
+    if (!res.ok) { setError(data.error || "Payment failed"); setSubmitting(false); return; }
     clearCart();
     window.location.href = data.url;
   };
 
   const handleRazorpayPayment = async () => {
     if (!window.Razorpay) {
-      setError("Payment gateway loading. Please try again in a moment.");
+      setError("Payment gateway loading. Please try again.");
       setSubmitting(false);
       return;
     }
@@ -122,7 +124,6 @@ export default function CheckoutPage() {
       order_id: data.razorpay_order_id,
       prefill: { name: form.name, email: form.email, contact: form.phone },
       theme: { color: "#0a0908" },
-      method: { upi: true, card: true, netbanking: true, wallet: true },
       handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
         const verifyRes = await fetch("/api/payments/razorpay/verify", {
           method: "POST",
@@ -134,6 +135,7 @@ export default function CheckoutPage() {
           router.push("/order-success");
         } else {
           setError("Payment verification failed");
+          setSubmitting(false);
         }
       },
       modal: { ondismiss: () => setSubmitting(false) },
@@ -151,10 +153,8 @@ export default function CheckoutPage() {
     try {
       if (paymentMethod === "stripe") {
         await handleStripePayment();
-        setSubmitting(false);
       } else {
         await handleRazorpayPayment();
-        // submitting is reset by modal.ondismiss or handler
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -162,7 +162,8 @@ export default function CheckoutPage() {
     }
   };
 
-  const isValid = form.name.trim() && form.email.trim() && form.phone.trim();
+  // Only require name and email — phone is optional
+  const isValid = form.name.trim() && form.email.trim();
 
   const inputStyle = {
     background: "rgba(10,9,8,0.025)",
@@ -204,46 +205,61 @@ export default function CheckoutPage() {
         </motion.div>
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-          {/* Left: Customer Details + Payment Method */}
+          {/* Left Column */}
           <motion.div
             className="flex-1"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            <h2 className="text-[11px] tracking-[0.4em] uppercase mb-8" style={{ color: "rgba(94,80,63,0.4)" }}>
-              Customer Details
-            </h2>
+            {/* Customer Info — collapsed if logged in with all data */}
+            {isLoggedIn && form.name && form.email ? (
+              <div className="mb-8 p-5 rounded-2xl" style={{ background: "rgba(10,9,8,0.025)", border: "1px solid rgba(94,80,63,0.08)" }}>
+                <h2 className="text-[11px] tracking-[0.4em] uppercase mb-3" style={{ color: "rgba(94,80,63,0.4)" }}>
+                  Ordering as
+                </h2>
+                <p className="text-sm font-medium" style={{ color: "rgba(10,9,8,0.8)" }}>{form.name}</p>
+                <p className="text-xs mt-1" style={{ color: "rgba(94,80,63,0.5)" }}>{form.email}</p>
+                {form.phone && <p className="text-xs mt-0.5" style={{ color: "rgba(94,80,63,0.5)" }}>{form.phone}</p>}
+              </div>
+            ) : (
+              <>
+                <h2 className="text-[11px] tracking-[0.4em] uppercase mb-8" style={{ color: "rgba(94,80,63,0.4)" }}>
+                  Customer Details
+                </h2>
+                <div className="space-y-5 mb-8">
+                  <div>
+                    <label className="block text-[10px] tracking-[0.3em] uppercase mb-2" style={{ color: "rgba(94,80,63,0.4)" }}>Full Name</label>
+                    <input type="text" name="name" value={form.name} onChange={handleChange} required
+                      className="w-full px-5 py-3.5 rounded-xl text-sm font-light outline-none transition-all duration-300" style={inputStyle} placeholder="Your name" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] tracking-[0.3em] uppercase mb-2" style={{ color: "rgba(94,80,63,0.4)" }}>Email</label>
+                    <input type="email" name="email" value={form.email} onChange={handleChange} required
+                      className="w-full px-5 py-3.5 rounded-xl text-sm font-light outline-none transition-all duration-300" style={inputStyle} placeholder="your@email.com" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] tracking-[0.3em] uppercase mb-2" style={{ color: "rgba(94,80,63,0.4)" }}>Phone (optional)</label>
+                    <input type="tel" name="phone" value={form.phone} onChange={handleChange}
+                      className="w-full px-5 py-3.5 rounded-xl text-sm font-light outline-none transition-all duration-300" style={inputStyle} placeholder="+91 000 000 0000" />
+                  </div>
+                </div>
+              </>
+            )}
 
-            <div className="space-y-5">
-              <div>
-                <label className="block text-[10px] tracking-[0.3em] uppercase mb-2" style={{ color: "rgba(94,80,63,0.4)" }}>Full Name</label>
-                <input type="text" name="name" value={form.name} onChange={handleChange} required
-                  className="w-full px-5 py-3.5 rounded-xl text-sm font-light outline-none transition-all duration-300" style={inputStyle} placeholder="Your name" />
-              </div>
-              <div>
-                <label className="block text-[10px] tracking-[0.3em] uppercase mb-2" style={{ color: "rgba(94,80,63,0.4)" }}>Email</label>
-                <input type="email" name="email" value={form.email} onChange={handleChange} required
-                  className="w-full px-5 py-3.5 rounded-xl text-sm font-light outline-none transition-all duration-300" style={inputStyle} placeholder="your@email.com" />
-              </div>
-              <div>
-                <label className="block text-[10px] tracking-[0.3em] uppercase mb-2" style={{ color: "rgba(94,80,63,0.4)" }}>Phone</label>
-                <input type="tel" name="phone" value={form.phone} onChange={handleChange} required
-                  className="w-full px-5 py-3.5 rounded-xl text-sm font-light outline-none transition-all duration-300" style={inputStyle} placeholder="+91 000 000 0000" />
-              </div>
-              <div>
-                <label className="block text-[10px] tracking-[0.3em] uppercase mb-2" style={{ color: "rgba(94,80,63,0.4)" }}>Pickup Location</label>
-                <select name="location_id" value={form.location_id} onChange={handleChange}
-                  className="w-full px-5 py-3.5 rounded-xl text-sm font-light outline-none cursor-pointer transition-all duration-300 appearance-none" style={inputStyle}>
-                  {locations.map((loc) => (
-                    <option key={loc.id} value={loc.id}>{loc.city} — {loc.address}</option>
-                  ))}
-                </select>
-              </div>
+            {/* Pickup Location */}
+            <div className="mb-8">
+              <label className="block text-[10px] tracking-[0.3em] uppercase mb-2" style={{ color: "rgba(94,80,63,0.4)" }}>Pickup Location</label>
+              <select name="location_id" value={form.location_id} onChange={handleChange}
+                className="w-full px-5 py-3.5 rounded-xl text-sm font-light outline-none cursor-pointer transition-all duration-300 appearance-none" style={inputStyle}>
+                {locations.map((loc) => (
+                  <option key={loc.id} value={loc.id}>{loc.city} — {loc.address}</option>
+                ))}
+              </select>
             </div>
 
             {/* Payment Method */}
-            <h2 className="text-[11px] tracking-[0.4em] uppercase mt-10 mb-6" style={{ color: "rgba(94,80,63,0.4)" }}>
+            <h2 className="text-[11px] tracking-[0.4em] uppercase mb-6" style={{ color: "rgba(94,80,63,0.4)" }}>
               Payment Method
             </h2>
             <div className="grid grid-cols-2 gap-3">
@@ -269,13 +285,13 @@ export default function CheckoutPage() {
                 }}
               >
                 <span className="text-sm font-medium block" style={{ color: "rgba(10,9,8,0.8)" }}>🇮🇳 UPI / Card</span>
-                <span className="text-[10px] mt-1 block" style={{ color: "rgba(94,80,63,0.4)" }}>Razorpay · UPI · QR · Cards</span>
+                <span className="text-[10px] mt-1 block" style={{ color: "rgba(94,80,63,0.4)" }}>Razorpay · UPI · QR</span>
               </button>
             </div>
 
             {paymentMethod === "razorpay" && (
               <p className="text-[11px] mt-3 font-light" style={{ color: "rgba(94,80,63,0.5)" }}>
-                Pay via UPI (GPay, PhonePe, Paytm), QR code, cards, netbanking, or wallets.
+                Pay via UPI (GPay, PhonePe, Paytm), QR code, cards, or netbanking.
               </p>
             )}
 
@@ -336,7 +352,7 @@ export default function CheckoutPage() {
                 whileTap={isValid && !submitting ? { scale: 0.97 } : {}}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
-                {submitting ? "Processing..." : paymentMethod === "stripe" ? "Pay with Card" : "Pay Now"}
+                {submitting ? "Processing..." : paymentMethod === "stripe" ? "Pay with Card" : "Pay with UPI / Card"}
               </motion.button>
             </div>
           </motion.div>
