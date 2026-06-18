@@ -21,7 +21,7 @@ export default function AccountPage() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) { router.push("/login?next=/account"); return; }
+      if (!user) return; // middleware handles redirect
       setUser(user);
       fetch("/api/orders")
         .then((r) => r.json())
