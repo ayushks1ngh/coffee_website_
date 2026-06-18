@@ -7,6 +7,7 @@ import PageShell from "@/components/PageShell";
 import DrinkDetailModal, { DrinkData } from "@/components/DrinkDetailModal";
 import StickyCart from "@/components/StickyCart";
 import { useCart } from "@/context/CartContext";
+import { useCurrency } from "@/context/CurrencyContext";
 
 // ── Categories ──
 const CATEGORIES = [
@@ -25,6 +26,7 @@ export default function MenuPage() {
   const [selectedDrink, setSelectedDrink] = useState<DrinkData | null>(null);
   const [drinks, setDrinks] = useState<DrinkData[]>([]);
   const { addToCart, toast } = useCart();
+  const { format } = useCurrency();
 
   useEffect(() => {
     fetch("/api/products")
@@ -208,7 +210,7 @@ export default function MenuPage() {
                         backdropFilter: "blur(8px)",
                       }}
                     >
-                      ${drink.price.toFixed(2)}
+                      {format(drink.price)}
                     </span>
 
                     {/* View Drink CTA — appears on hover */}

@@ -5,10 +5,12 @@ import Image from "next/image";
 import Link from "next/link";
 import PageShell from "@/components/PageShell";
 import { useCart } from "@/context/CartContext";
+import { useCurrency } from "@/context/CurrencyContext";
 
 export default function CartPage() {
   const { items, removeFromCart, updateQuantity, subtotal, itemCount } =
     useCart();
+  const { format } = useCurrency();
 
   const TAX_RATE = 0.08;
   const tax = subtotal * TAX_RATE;
@@ -178,7 +180,7 @@ export default function CartPage() {
                       className="text-lg font-light tabular-nums"
                       style={{ color: "rgba(139,116,90,0.7)" }}
                     >
-                      ${(item.price * item.quantity).toFixed(2)}
+                      {format(item.price * item.quantity)}
                     </span>
                     <motion.button
                       onClick={() => removeFromCart(item.id)}
@@ -227,7 +229,7 @@ export default function CartPage() {
                     className="text-sm font-light tabular-nums"
                     style={{ color: "rgba(10,9,8,0.7)" }}
                   >
-                    ${subtotal.toFixed(2)}
+                    {format(subtotal)}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -241,7 +243,7 @@ export default function CartPage() {
                     className="text-sm font-light tabular-nums"
                     style={{ color: "rgba(10,9,8,0.7)" }}
                   >
-                    ${tax.toFixed(2)}
+                    {format(tax)}
                   </span>
                 </div>
                 <div
@@ -259,7 +261,7 @@ export default function CartPage() {
                     className="text-xl font-light tabular-nums"
                     style={{ color: "rgba(10,9,8,0.9)" }}
                   >
-                    ${total.toFixed(2)}
+                    {format(total)}
                   </span>
                 </div>
               </div>

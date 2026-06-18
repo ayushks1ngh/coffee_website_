@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
 import { useCart } from "@/context/CartContext";
+import CurrencySwitcher from "@/components/CurrencySwitcher";
 
 /* ══════════════════════════════════════════════
    ROUTE DEFINITIONS
@@ -284,6 +285,9 @@ const Navbar = memo(function Navbar() {
             isActive={pathname === link.href}
           />
         ))}
+
+        {/* Currency */}
+        <CurrencySwitcher />
 
         {/* Cart Badge */}
         <CartBadge />
