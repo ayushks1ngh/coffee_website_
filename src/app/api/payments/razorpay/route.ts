@@ -5,13 +5,24 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { TAX_RATE } from "@/lib/constants";
 import { CURRENCY_CONFIG, type Currency } from "@/lib/currency";
+import { rateLimit } from "@/lib/rate-limit";
+import { isValidEmail } from "@/lib/validation";
 
 export async function POST(request: Request) {
+  const ip = request.headers.get("x-forwarded-for") || "unknown";
+  if (!rateLimit(`razorpay:${ip}`, 10, 60_000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const body = await request.json();
   const { customer_name, customer_email, customer_phone, location_id, items, notes, currency = "INR" } = body;
 
   if (!customer_name || !customer_email || !items?.length) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+  }
+
+  if (!isValidEmail(customer_email)) {
+    return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
   }
 
   const curr = currency as Currency;

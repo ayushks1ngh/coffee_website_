@@ -3,6 +3,8 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { sendOrderConfirmation } from "@/lib/email";
 import { TAX_RATE } from "@/lib/constants";
+import { rateLimit } from "@/lib/rate-limit";
+import { isValidEmail } from "@/lib/validation";
 
 export async function GET() {
   const supabase = createServerSupabase();
@@ -20,11 +22,20 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const ip = request.headers.get("x-forwarded-for") || "unknown";
+  if (!rateLimit(`orders:${ip}`, 10, 60_000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const body = await request.json();
   const { customer_name, customer_email, customer_phone, location_id, items, notes } = body;
 
   if (!customer_name || !customer_email || !items?.length) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+  }
+
+  if (!isValidEmail(customer_email)) {
+    return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
   }
 
   // Get current user (optional — guest checkout allowed)
